@@ -48,8 +48,17 @@ type TicketRequest struct {
 
 var db *sql.DB
 
+var cachedSeats []int
+var isCached bool
+
 // 좌석 리스트 반환
 func availableSeatsHandler(w http.ResponseWriter, r *http.Request) {
+	if isCached {
+		logJSON("INFO", "available_seats", 0, 0, fmt.Sprintf("count=%d", len(cachedSeats)), nil)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(cachedSeats)
+		return
+	}
 	rows, err := db.Query(`SELECT seat_id FROM seats WHERE status = 'available' ORDER BY seat_id`)
 	if err != nil {
 		logJSON("ERROR", "available_seats", 0, 0, "query_fail", err)
@@ -68,6 +77,8 @@ func availableSeatsHandler(w http.ResponseWriter, r *http.Request) {
 
 	logJSON("INFO", "available_seats", 0, 0, fmt.Sprintf("count=%d", len(seats)), nil)
 	w.Header().Set("Content-Type", "application/json")
+	cachedSeats = seats
+	isCached = true
 	json.NewEncoder(w).Encode(seats)
 }
 
@@ -127,6 +138,8 @@ func reserveHandler(w http.ResponseWriter, r *http.Request) {
 
 	logJSON("INFO", "reserve", req.UserID, req.SeatID, "success", nil)
 	w.Header().Set("Content-Type", "application/json")
+	cachedSeats = nil // 캐시 초기화
+	isCached = false  // 캐시 무효화
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Reservation successful",
 	})
@@ -174,8 +187,8 @@ func main() {
 		log.Fatalf("Failed to open DB: %v", err)
 	}
 
-	// db.SetMaxOpenConns(10000)
-	// db.SetMaxIdleConns(100)
+	db.SetMaxOpenConns(1000)
+	db.SetMaxIdleConns(100)
 	db.SetConnMaxLifetime(30 * time.Second)
 
 	for {
