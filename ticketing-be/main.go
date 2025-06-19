@@ -24,6 +24,16 @@ type LogEntry struct {
 	Error     string `json:"error,omitempty"`
 }
 
+type TicketRequest struct {
+	UserID int `json:"user_id"`
+	SeatID int `json:"seat_id"`
+}
+
+var db *sql.DB
+
+var cachedSeats []int
+var isCached bool
+
 // JSON 로그 출력 함수
 func logJSON(level, action string, userID, seatID int, status string, err error) {
 	entry := LogEntry{
@@ -40,16 +50,6 @@ func logJSON(level, action string, userID, seatID int, status string, err error)
 	data, _ := json.Marshal(entry)
 	log.Println(string(data))
 }
-
-type TicketRequest struct {
-	UserID int `json:"user_id"`
-	SeatID int `json:"seat_id"`
-}
-
-var db *sql.DB
-
-var cachedSeats []int
-var isCached bool
 
 // 좌석 리스트 반환
 func availableSeatsHandler(w http.ResponseWriter, r *http.Request) {
@@ -187,7 +187,7 @@ func main() {
 		log.Fatalf("Failed to open DB: %v", err)
 	}
 
-	db.SetMaxOpenConns(1000)
+	db.SetMaxOpenConns(5000)
 	db.SetMaxIdleConns(100)
 	db.SetConnMaxLifetime(30 * time.Second)
 

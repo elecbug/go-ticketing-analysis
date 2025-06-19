@@ -26,7 +26,7 @@ type Result struct {
 }
 
 const (
-	concurrentClients = 1000
+	concurrentClients = 5000
 	loadURL           = "http://server:8080/seats/available"
 	reserveURL        = "http://server:8080/reserve"
 )
