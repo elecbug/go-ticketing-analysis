@@ -60,8 +60,10 @@ func tryReserve(client *http.Client, req ReserveRequest) Result {
 	return Result{StatusCode: resp.StatusCode, Duration: duration}
 }
 
-func simulateClient(userID int, client *http.Client, wg *sync.WaitGroup, results chan<- Result) {
+func simulateClient(userID int, client *http.Client, wg *sync.WaitGroup, results chan<- []Result) {
 	defer wg.Done()
+
+	currentResults := make([]Result, 0)
 
 	for {
 		seats, err := fetchAvailableSeats(client)
@@ -78,7 +80,7 @@ func simulateClient(userID int, client *http.Client, wg *sync.WaitGroup, results
 			seats[i], seats[j] = seats[j], seats[i]
 		})
 
-		for i := 0; i < len(seats) && i < 10; i++ {
+		for i := 0; i < len(seats) && i < 3; i++ {
 			seatID := seats[i]
 
 			// 측정 대상: 딱 한 번의 리퀘스트-리스폰 시간
@@ -92,24 +94,31 @@ func simulateClient(userID int, client *http.Client, wg *sync.WaitGroup, results
 				continue
 			}
 
-			// 결과 전송 (성공 or 실패 관계없이)
-			results <- result
+			currentResults = append(currentResults, result)
+
+			if result.StatusCode == http.StatusOK {
+				break
+			}
+
+			time.Sleep(time.Duration(int(rand.Float64()*100)) * time.Millisecond)
 		}
-
-		time.Sleep(time.Duration(int(rand.Float64()*100)) * time.Millisecond)
 	}
 
-	// 모든 시도 실패, 마지막 리퀘스트도 못 보냈으면 duration = 0
-	results <- Result{
-		StatusCode: 0,
-		Err:        fmt.Errorf("user %d: no request succeeded", userID),
-		Duration:   0,
+	if len(currentResults) == 0 {
+		currentResults = append(currentResults, Result{
+			StatusCode: 0,
+			Err:        fmt.Errorf("user %d: no request succeeded", userID),
+			Duration:   0,
+		})
 	}
+
+	// 결과 전송 (성공 or 실패 관계없이)
+	results <- currentResults
 }
 
 func main() {
 	var wg sync.WaitGroup
-	results := make(chan Result, concurrentClients)
+	results := make(chan []Result, concurrentClients)
 	client := &http.Client{Timeout: 5 * time.Second}
 
 	fmt.Println("Starting load test...")
@@ -133,22 +142,25 @@ func main() {
 		requestFailCount int
 	)
 	var allResults []Result
-	for r := range results {
-		allResults = append(allResults, r)
-		if r.Duration == 0 {
-			// 네트워크 실패 (요청 자체가 실패했음)
-			requestFailCount++
-			continue
-		}
+	for rr := range results {
+		for _, r := range rr {
+			allResults = append(allResults, r)
 
-		if r.StatusCode == http.StatusOK {
-			// 예매 성공
-			successCount++
-			successTotalRTT += r.Duration
-		} else {
-			// 예매 실패 (응답은 옴)
-			failCount++
-			failTotalRTT += r.Duration
+			if r.Duration == 0 {
+				// 네트워크 실패 (요청 자체가 실패했음)
+				requestFailCount++
+				continue
+			}
+
+			if r.StatusCode == http.StatusOK {
+				// 예매 성공
+				successCount++
+				successTotalRTT += r.Duration
+			} else {
+				// 예매 실패 (응답은 옴)
+				failCount++
+				failTotalRTT += r.Duration
+			}
 		}
 	}
 
@@ -184,7 +196,7 @@ func main() {
 	fmt.Printf("  ↳ Avg RTT: %v\n", failAvgRTT)
 	result += fmt.Sprintf("  ↳ Avg RTT: %v\n", failAvgRTT)
 
-	f, err := os.OpenFile("/results/load_test_results.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("/results/load_test_results.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0777)
 	if err != nil {
 		log.Fatalf("파일 열기 실패: %v", err)
 	}
