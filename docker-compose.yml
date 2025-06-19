@@ -1,0 +1,48 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: ticketing
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-ppassword"]
+      interval: 5s
+      retries: 10
+    networks:
+      - benchnet
+
+  server:
+    build: ticketing-be
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: db
+    restart: always
+    networks:
+      - benchnet
+
+  client:
+    build: ticketing-cli
+    depends_on:
+      - server
+    networks:
+      - benchnet
+    deploy:
+      replicas: 10
+    volumes:
+      - ./results:/results
+
+volumes:
+  dbdata:
+
+networks:
+  benchnet:
+    driver: bridge

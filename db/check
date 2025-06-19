@@ -1,0 +1,4 @@
+sudo docker exec -it go-ticketing-db-1 mysql -u root -ppassword
+
+USE ticketing;
+SELECT status, COUNT(*) AS count FROM seats GROUP BY status;
