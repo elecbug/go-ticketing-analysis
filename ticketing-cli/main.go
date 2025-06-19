@@ -191,8 +191,8 @@ func main() {
 	fmt.Printf("  ↳ Avg RTT: %v\n", successAvgRTT)
 	result += fmt.Sprintf("  ↳ Avg RTT: %v\n", successAvgRTT)
 
-	fmt.Printf("Reservation Failure (but response received): %d\n", failCount)
-	result += fmt.Sprintf("Reservation Failure (but response received): %d\n", failCount)
+	fmt.Printf("Reservation Failure: %d\n", failCount)
+	result += fmt.Sprintf("Reservation Failure: %d\n", failCount)
 	fmt.Printf("  ↳ Avg RTT: %v\n", failAvgRTT)
 	result += fmt.Sprintf("  ↳ Avg RTT: %v\n", failAvgRTT)
 

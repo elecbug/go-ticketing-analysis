@@ -160,7 +160,7 @@ func initSeats(total int) error {
 func main() {
 	var err error
 
-	logFile, err := os.OpenFile("/results/ticketing.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	logFile, err := os.OpenFile(fmt.Sprintf("/results/ticketing-%s.log", time.Now().Format("20060102150405")), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		fmt.Printf("Failed to open log file: %v\n", err)
 		os.Exit(1)
@@ -174,8 +174,8 @@ func main() {
 		log.Fatalf("Failed to open DB: %v", err)
 	}
 
-	db.SetMaxOpenConns(1000)
-	db.SetMaxIdleConns(100)
+	// db.SetMaxOpenConns(10000)
+	// db.SetMaxIdleConns(100)
 	db.SetConnMaxLifetime(30 * time.Second)
 
 	for {
