@@ -38,7 +38,7 @@ services:
     networks:
       - benchnet
     deploy:
-      replicas: 10
+      replicas: 20
     volumes:
       - ./results:/results
 

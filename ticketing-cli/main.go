@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
+	// "log"
 	"math/rand/v2"
 	"net/http"
-	"os"
+	// "os"
 	"sync"
 	"time"
 )
@@ -165,44 +165,44 @@ func main() {
 	}
 
 	// 평균 계산
-	var (
-		successAvgRTT time.Duration
-		failAvgRTT    time.Duration
-	)
+	// var (
+	// 	successAvgRTT time.Duration
+	// 	failAvgRTT    time.Duration
+	// )
 
-	if successCount > 0 {
-		successAvgRTT = successTotalRTT / time.Duration(successCount)
-	}
+	// if successCount > 0 {
+	// 	successAvgRTT = successTotalRTT / time.Duration(successCount)
+	// }
 
-	if failCount > 0 {
-		failAvgRTT = failTotalRTT / time.Duration(failCount)
-	}
+	// if failCount > 0 {
+	// 	failAvgRTT = failTotalRTT / time.Duration(failCount)
+	// }
 
-	result := ""
+	// result := ""
 
 	// 출력
-	fmt.Println("✅ Detailed Load Test Results")
-	result += "✅ Detailed Load Test Results\n"
-	fmt.Printf("Request Failures (no HTTP response): %d\n", requestFailCount)
-	result += fmt.Sprintf("Request Failures (no HTTP response): %d\n", requestFailCount)
+	// fmt.Println("✅ Detailed Load Test Results")
+	// result += "✅ Detailed Load Test Results\n"
+	// fmt.Printf("Request Failures (no HTTP response): %d\n", requestFailCount)
+	// result += fmt.Sprintf("Request Failures (no HTTP response): %d\n", requestFailCount)
 
-	fmt.Printf("Reservation Success: %d\n", successCount)
-	result += fmt.Sprintf("Reservation Success: %d\n", successCount)
-	fmt.Printf("  ↳ Avg RTT: %v\n", successAvgRTT)
-	result += fmt.Sprintf("  ↳ Avg RTT: %v\n", successAvgRTT)
+	// fmt.Printf("Reservation Success: %d\n", successCount)
+	// result += fmt.Sprintf("Reservation Success: %d\n", successCount)
+	// fmt.Printf("  ↳ Avg RTT: %v\n", successAvgRTT)
+	// result += fmt.Sprintf("  ↳ Avg RTT: %v\n", successAvgRTT)
 
-	fmt.Printf("Reservation Failure: %d\n", failCount)
-	result += fmt.Sprintf("Reservation Failure: %d\n", failCount)
-	fmt.Printf("  ↳ Avg RTT: %v\n", failAvgRTT)
-	result += fmt.Sprintf("  ↳ Avg RTT: %v\n", failAvgRTT)
+	// fmt.Printf("Reservation Failure: %d\n", failCount)
+	// result += fmt.Sprintf("Reservation Failure: %d\n", failCount)
+	// fmt.Printf("  ↳ Avg RTT: %v\n", failAvgRTT)
+	// result += fmt.Sprintf("  ↳ Avg RTT: %v\n", failAvgRTT)
 
-	f, err := os.OpenFile("/results/load_test_results.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0777)
-	if err != nil {
-		log.Fatalf("파일 열기 실패: %v", err)
-	}
-	defer f.Close()
+	// f, err := os.OpenFile("/results/load_test_results.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0777)
+	// if err != nil {
+	// 	log.Fatalf("파일 열기 실패: %v", err)
+	// }
+	// defer f.Close()
 
-	if _, err := f.WriteString(result + "\n"); err != nil {
-		log.Fatalf("파일 쓰기 실패: %v", err)
-	}
+	// if _, err := f.WriteString(result + "\n"); err != nil {
+	// 	log.Fatalf("파일 쓰기 실패: %v", err)
+	// }
 }
